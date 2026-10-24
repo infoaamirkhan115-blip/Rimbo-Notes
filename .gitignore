@@ -5,3 +5,7 @@ Thumbs.db
 node_modules/
 .openai/
 *.tar.gz
+backend/config.php
+*.log
+__pycache__/
+*.pyc

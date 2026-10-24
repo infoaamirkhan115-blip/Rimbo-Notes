@@ -1,0 +1,51 @@
+name: PHP and MySQL tests
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test-root-only
+          MYSQL_DATABASE: rimbo_test
+          MYSQL_USER: rimbo_test
+          MYSQL_PASSWORD: test-only-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -ptest-root-only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      RIMBO_DB_HOST: 127.0.0.1
+      RIMBO_DB_PORT: 3306
+      RIMBO_DB_NAME: rimbo_test
+      RIMBO_DB_USER: rimbo_test
+      RIMBO_DB_PASSWORD: test-only-password
+      RIMBO_SECURE_COOKIES: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP and MySQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y php-cli php-mysql mysql-client
+      - name: Syntax checks
+        run: |
+          find backend dist/api -name '*.php' -print0 | xargs -0 -n1 php -l
+          node --check dist/app.js
+          node --check dist/server.js
+      - name: Create test tables
+        run: mysql -h 127.0.0.1 -u rimbo_test -ptest-only-password rimbo_test < database/schema.sql
+      - name: Start PHP and exercise the API
+        run: |
+          php -S 127.0.0.1:8080 -t dist > /tmp/rimbo-php.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl --silent --fail 'http://127.0.0.1:8080/api/index.php?route=session' && break
+            sleep 1
+          done
+          python3 tests/api_test.py
+      - name: PHP logs on failure
+        if: failure()
+        run: cat /tmp/rimbo-php.log 2>/dev/null || true
