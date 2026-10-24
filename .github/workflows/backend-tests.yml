@@ -36,6 +36,7 @@ jobs:
           find backend dist/api -name '*.php' -print0 | xargs -0 -n1 php -l
           node --check dist/app.js
           node --check dist/server.js
+          node tests/sync_test.cjs
       - name: Create test tables
         run: mysql -h 127.0.0.1 -u rimbo_test -ptest-only-password rimbo_test < database/schema.sql
       - name: Start PHP and exercise the API

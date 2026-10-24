@@ -151,6 +151,8 @@ The API deliberately does not accept a user ID or email as a workspace selector.
 
 ## Tests
 
+The backend integration suite passed on MySQL 8 in GitHub Actions. The frontend save-queue tests also cover serialized writes, coalesced edits, conflicts, recovery data and imported IDs.
+
 The GitHub Actions workflow `.github/workflows/backend-tests.yml` provisions a disposable MySQL 8 database, lints PHP/JS and runs the API integration tests.
 
 To run locally, initialize a **disposable test database**, configure the `RIMBO_DB_*` environment variables for it, set `RIMBO_SECURE_COOKIES=false`, then:
@@ -168,6 +170,7 @@ Optional syntax checks:
 ```sh
 node --check dist/app.js
 node --check dist/server.js
+node tests/sync_test.cjs
 php -l backend/bootstrap.php
 php -l backend/validation.php
 php -l dist/api/index.php

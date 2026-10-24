@@ -14,7 +14,7 @@ if($route==='session'&&$method==='GET') {
     reply(200,['user'=>$user,'csrf'=>$_SESSION['csrf'],'registration_open'=>configBool('registration_open',true)]);
 }
 if(in_array($route,['login','register'],true)&&$method==='POST') {
-    $b=body();$email=strtolower(trim(textValue($b,'email',254)));$password=textValue($b,'password',1024);
+    $b=body();$email=strtolower(trim(textValue($b,'email',254)));$password=textValue($b,'password',72);
     if(!filter_var($email,FILTER_VALIDATE_EMAIL)||!preg_match('/^[\x20-\x7E]+$/D',$email)) invalid('Enter a valid email address.');
     throttle($email);
     if($route==='register') {
